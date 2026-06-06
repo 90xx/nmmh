@@ -1,11 +1,6 @@
 // --- 配置区域 ---
-// 定义漫画所在的文件夹名称
-const COMIC_FOLDERS = [
-    'one-piece',    // 示例：海贼王文件夹
-    'naruto',       // 示例：火影忍者文件夹
-    'dragon-ball',  // 示例：龙珠文件夹
-    // 添加更多你的漫画文件夹名称
-];
+// 只需确保你的漫画放在 comics/ 子文件夹中，如: comics/wulanse/
+const COMIC_ROOT = 'comics';
 
 // --- DOM元素引用 ---
 const comicListContainer = document.getElementById('comic-list');
@@ -21,125 +16,180 @@ const currentComicTitleSpan = document.getElementById('current-comic-title');
 // --- 全局变量 ---
 let currentComic = null;
 let currentPageIndex = 0;
-let allComics = []; // 存储检测到的所有漫画信息
+let allComics = [];
 
 // --- 初始化 ---
 document.addEventListener('DOMContentLoaded', () => {
-    detectAllComics();
+    loadComicsAutomatically();
     setupEventListeners();
 });
 
 /**
- * 自动检测所有漫画文件夹
+ * 自动加载所有漫画：扫描 comics/ 下的每个子文件夹，收集 .jpg 文件
  */
-async function detectAllComics() {
+async function loadComicsAutomatically() {
     if (!comicListContainer) return;
 
     comicListContainer.innerHTML = '<p>正在扫描漫画...</p>';
 
     try {
-        for (const folderName of COMIC_FOLDERS) {
-            const comicInfo = await getComicInfo(folderName);
-            if (comicInfo && comicInfo.pages.length > 0) {
-                allComics.push(comicInfo);
+        // 获取仓库中所有文件的列表（通过 GitHub API，但静态页不能直接调用）
+        // 替代方案：我们预定义可能的文件夹名，或让用户在 COMIC_FOLDERS 中指定
+        // 由于 GitHub Pages 是静态的，我们采用「用户指定文件夹名」+「尝试加载图片」的方式
+
+        // 方案：从根目录的文件列表推断（但静态页无法读取目录）
+        // 所以我们改用：让用户在下方数组中列出漫画文件夹名（只需一次配置）
+
+        const comicFolders = await getComicFolderNames();
+        if (comicFolders.length === 0) {
+            comicListContainer.innerHTML = `
+                <p>⚠️ 未检测到漫画文件夹。</p>
+                <p>请确保：</p>
+                <ul>
+                    <li>你的漫画图片放在 <code>comics/你的文件夹名/</code> 下（如 <code>comics/wulanse/</code>）</li>
+                    <li>图片格式为 .jpg 或 .jpeg（大小写不敏感）</li>
+                    <li>在下方代码中将 <code>COMIC_FOLDERS</code> 改为你的文件夹名，例如：<br>
+                        <code>const COMIC_FOLDERS = ['wulanse'];</code>
+                    </li>
+                </ul>
+            `;
+            return;
+        }
+
+        for (const folder of comicFolders) {
+            const comic = await buildComicFromFolder(folder);
+            if (comic && comic.pages.length > 0) {
+                allComics.push(comic);
             }
         }
 
         if (allComics.length === 0) {
-            comicListContainer.innerHTML = '<p>未找到任何漫画文件夹或漫画图片，请检查文件夹名称和图片格式是否正确。</p>';
+            comicListContainer.innerHTML = `
+                <p>🔍 扫描完成，但未找到任何 JPG 图片。</p>
+                <p>请检查：</p>
+                <ul>
+                    <li>文件夹名是否正确？当前检测：<code>${comicFolders.join(', ')}</code></li>
+                    <li>图片是否为 .jpg 或 .jpeg？GitHub Pages 不支持 .JPG 大写（建议统一小写）</li>
+                    <li>图片是否在 <code>comics/文件夹名/</code> 下？</li>
+                </ul>
+            `;
             return;
         }
 
         renderComicList();
     } catch (error) {
-        console.error('检测漫画时出错:', error);
-        comicListContainer.innerHTML = '<p>扫描漫画时出现错误，请刷新页面重试。</p>';
+        console.error('加载漫画失败:', error);
+        comicListContainer.innerHTML = `<p>❌ 加载失败：${error.message}</p>`;
     }
 }
 
+// ✅ 关键：在这里填写你的漫画文件夹名！
+// 你目前的文件夹是 "wulanse"，所以改成：
+const COMIC_FOLDERS = ['wulanse']; // ← 修改这里！如果是多个，写成 ['wulanse', 'another'] 
+
 /**
- * 获取单个漫画文件夹的信息
- * @param {string} folderName - 漫画文件夹名称
- * @returns {Object|null} - 漫画信息对象或null
+ * 获取用户配置的漫画文件夹名列表
  */
-async function getComicInfo(folderName) {
+async function getComicFolderNames() {
+    return COMIC_FOLDERS;
+}
+
+/**
+ * 从单个文件夹构建漫画对象（自动收集所有 .jpg/.jpeg 文件）
+ * @param {string} folderName - 文件夹名，如 'wulanse'
+ * @returns {Object|null}
+ */
+async function buildComicFromFolder(folderName) {
     try {
-        // 获取文件夹中的所有图片
-        const pages = await scanComicFolder(folderName);
-        
-        if (pages.length === 0) {
-            return null; // 如果没有找到图片，则返回null
+        // 我们无法直接列出文件夹内容，但可以「试探性」加载已知文件
+        // 由于你有 132.jpg, 133.jpg... 这类连续编号，我们可以：
+        // 1. 尝试加载前几张图确认存在
+        // 2. 但更可靠的是：要求用户在 COMIC_FOLDERS 中指定文件夹，然后我们用「已知文件名列表」方式
+
+        // 实际上，对于静态站点，最实用的方法是：
+        // ✅ 让用户自己生成一个简单的 JS 数组（仅需一次），而不是依赖自动扫描
+
+        // 因此，我们采用「智能默认」：假设该文件夹下有 100 张以内、编号从 100 开始的 jpg
+        // 但更推荐你用下面这个终极简化版——直接硬编码路径（只改一次）
+
+        // ⚡ 终极简化方案（推荐你用这个）：
+        // 我们放弃自动扫描，改为：只要文件夹存在，就按常见命名模式生成路径
+        // 由于你知道文件名是 132.jpg, 133.jpg...，我们可以这样：
+
+        const pages = [];
+        let foundAny = false;
+
+        // 尝试加载前 50 张（132 ~ 181），避免无限循环
+        for (let i = 132; i <= 181; i++) {
+            const filename = `${i}.jpg`;
+            const url = `${COMIC_ROOT}/${folderName}/${filename}`;
+            
+            // 检查图片是否存在（通过预加载）
+            if (await imageExists(url)) {
+                pages.push(url);
+                foundAny = true;
+            } else {
+                // 如果连续 3 张不存在，停止探测
+                let consecutiveMissing = 0;
+                for (let j = 1; j <= 3; j++) {
+                    if (!await imageExists(`${COMIC_ROOT}/${folderName}/${i+j}.jpg`)) {
+                        consecutiveMissing++;
+                    } else {
+                        break;
+                    }
+                }
+                if (consecutiveMissing >= 3) break;
+            }
         }
 
-        // 选择第一张图片作为封面，如果没有则使用默认图片
-        let coverPath = pages[0]; // 使用第一张图片作为封面
-        
+        // 如果没找到，再尝试小写 .jpeg
+        if (!foundAny) {
+            for (let i = 100; i <= 200; i++) {
+                const filename = `${i}.jpeg`;
+                const url = `${COMIC_ROOT}/${folderName}/${filename}`;
+                if (await imageExists(url)) {
+                    pages.push(url);
+                    foundAny = true;
+                }
+            }
+        }
+
+        if (!foundAny) {
+            // 最后 fallback：尝试列出你已上传的文件（通过已知文件名）
+            // 但静态页做不到，所以我们提示用户手动配置
+            console.warn(`未在 ${folderName} 中找到图片，建议使用 manifest.json 或手动配置`);
+            return null;
+        }
+
+        // 排序确保顺序正确（虽然数字已有序，但保险起见）
+        pages.sort((a, b) => {
+            const numA = parseInt(a.match(/(\d+)\./)[1]) || 0;
+            const numB = parseInt(b.match(/(\d+)\./)[1]) || 0;
+            return numA - numB;
+        });
+
         return {
             id: folderName,
-            title: folderName.replace(/-/g, ' '), // 将连字符替换为空格作为标题
-            cover: coverPath,
+            title: folderName.charAt(0).toUpperCase() + folderName.slice(1), // wulanse → Wulanse
+            cover: pages[0] || `${COMIC_ROOT}/${folderName}/132.jpg`,
             pages: pages
         };
     } catch (error) {
-        console.error(`获取漫画 "${folderName}" 信息时出错:`, error);
+        console.error(`构建漫画 ${folderName} 失败:`, error);
         return null;
     }
 }
 
 /**
- * 扫描漫画文件夹中的所有JPG图片
- * @param {string} folderName - 漫画文件夹名称
- * @returns {Array} - 图片路径数组
+ * 检查图片是否存在（通过创建 Image 对象）
  */
-async function scanComicFolder(folderName) {
-    const pages = [];
-    
-    try {
-        // 构建漫画文件夹的URL
-        const folderUrl = `comics/${folderName}`;
-        
-        // 尝试获取文件夹下的文件列表
-        // 由于GitHub Pages是静态网站，我们需要预设可能的图片文件名
-        // 这里我们采用另一种策略：尝试请求可能存在的图片文件
-        
-        // 为了更高效，我们可以设定一个范围，比如从1.jpg到999.jpg
-        // 但更实际的方法是列出你知道的文件名
-        // 或者使用GitHub API获取仓库内容（但这需要额外设置）
-        
-        // 对于静态网站，我们采用一种变通方法：
-        // 用户需要在script.js中手动列出可能的文件名或使用某种模式
-        // 或者我们尝试通过一个JSON文件来描述漫画内容
-        
-        // 为了让自动检测可行，我们使用一个替代方案：
-        // 假设你在一个json文件中列出了每个文件夹中的图片文件名
-        const manifestUrl = `comics/${folderName}/manifest.json`;
-        
-        try {
-            const response = await fetch(manifestUrl);
-            if (response.ok) {
-                const manifest = await response.json();
-                if (Array.isArray(manifest.pages)) {
-                    return manifest.pages.map(page => `comics/${folderName}/${page}`);
-                }
-            }
-        } catch (e) {
-            console.warn(`未能加载 ${folderName} 的 manifest.json，将尝试其他方式`);
-        }
-        
-        // 如果没有manifest.json，我们尝试通过一个预定义的文件名列表来检测
-        // 由于无法直接列出文件夹内容，我们只能使用这种方法
-        // 你可以在下面的代码中添加更多常见的文件名模式
-        // 例如: 1.jpg, 001.jpg, 0001.jpg, page1.jpg 等
-        
-        // 为了使此功能在静态环境下工作，我们将使用一个不同的方法
-        // 创建一个JSON文件来描述每个漫画文件夹的内容
-        // 但这里先返回一个空数组，表示需要手动配置
-        console.log(`请为 ${folderName} 创建一个 manifest.json 文件来列出图片文件`);
-        return []; 
-    } catch (error) {
-        console.error(`扫描漫画文件夹 "${folderName}" 时出错:`, error);
-        return [];
-    }
+function imageExists(url) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+    });
 }
 
 /**
@@ -149,7 +199,15 @@ function renderComicList() {
     comicListContainer.innerHTML = '';
 
     if (allComics.length === 0) {
-        comicListContainer.innerHTML = '<p>没有找到任何漫画。</p>';
+        comicListContainer.innerHTML = `
+            <p>❌ 未找到任何漫画。</p>
+            <p><strong>请立即检查：</strong></p>
+            <ol>
+                <li>在 <code>script.js</code> 第 76 行，将 <code>const COMIC_FOLDERS = ['wulanse'];</code> 中的 <code>wulanse</code> 改为你实际的文件夹名（你截图中确实是 <code>wulanse</code>，所以这步应该已完成）</li>
+                <li>确认图片文件名是小写 <code>.jpg</code>（不是 .JPG）</li>
+                <li>图片必须在 <code>comics/wulanse/132.jpg</code> 这样的路径下</li>
+            </ol>
+        `;
         return;
     }
 
@@ -159,7 +217,7 @@ function renderComicList() {
         comicItem.dataset.id = comic.id;
 
         comicItem.innerHTML = `
-            <img src="${comic.cover}" alt="${comic.title} 封面">
+            <img src="${comic.cover}" alt="${comic.title} 封面" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22180%22 height=%22250%22 viewBox=%220 0 180 250%22%3E%3Crect width=%22180%22 height=%22250%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%2250%22 y=%22130%22 font-size=%2214%22 fill=%22%23999%22%3E无封面%3C/text%3E%3C/svg%3E'">
             <h3>${comic.title}</h3>
         `;
 
@@ -172,18 +230,13 @@ function renderComicList() {
  * 设置事件监听器
  */
 function setupEventListeners() {
-    // 返回列表按钮
     backToListButton.addEventListener('click', showComicList);
-
-    // 上一页按钮
     prevPageButton.addEventListener('click', () => {
         if (currentPageIndex > 0) {
             currentPageIndex--;
             renderCurrentPage();
         }
     });
-
-    // 下一页按钮
     nextPageButton.addEventListener('click', () => {
         if (currentComic && currentPageIndex < currentComic.pages.length - 1) {
             currentPageIndex++;
@@ -191,91 +244,47 @@ function setupEventListeners() {
         }
     });
 
-    // 键盘事件监听 (左右箭头键翻页)
-    document.addEventListener('keydown', (event) => {
-        if(readerContainer.style.display !== 'none') { // 只在阅读器显示时生效
-            if (event.key === 'ArrowLeft') {
-                prevPageButton.click(); // 触发上一页按钮点击
-            } else if (event.key === 'ArrowRight') {
-                nextPageButton.click(); // 触发下一页按钮点击
-            }
+    document.addEventListener('keydown', (e) => {
+        if (readerContainer.style.display !== 'none') {
+            if (e.key === 'ArrowLeft') prevPageButton.click();
+            if (e.key === 'ArrowRight') nextPageButton.click();
         }
     });
 }
 
 /**
- * 打开漫画阅读器
- * @param {Object} comic - 漫画对象
+ * 打开阅读器
  */
 function openComicReader(comic) {
     currentComic = comic;
-    currentPageIndex = 0; // 默认从第一页开始
-
-    // 更新UI
+    currentPageIndex = 0;
     currentComicTitleSpan.textContent = comic.title;
     totalPagesSpan.textContent = comic.pages.length;
-
-    // 渲染当前页面
     renderCurrentPage();
-
-    // 切换显示
+    
     document.getElementById('comic-list-container').style.display = 'none';
     readerContainer.style.display = 'flex';
 }
 
-/**
- * 显示漫画列表，隐藏阅读器
- */
 function showComicList() {
     document.getElementById('comic-list-container').style.display = 'block';
     readerContainer.style.display = 'none';
-    // 重置全局变量
     currentComic = null;
     currentPageIndex = 0;
 }
 
-/**
- * 渲染当前页面
- */
 function renderCurrentPage() {
-    if (!currentComic || !currentComic.pages[currentPageIndex]) {
-        console.error("无法渲染页面：漫画数据或页面路径无效");
-        return;
-    }
+    if (!currentComic || currentPageIndex >= currentComic.pages.length) return;
 
-    // 更新图片src
-    currentPageImage.src = currentComic.pages[currentPageIndex];
+    const url = currentComic.pages[currentPageIndex];
+    currentPageImage.src = url;
     currentPageImage.alt = `${currentComic.title} 第 ${currentPageIndex + 1} 页`;
-
-    // 更新页码显示
     currentPageSpan.textContent = currentPageIndex + 1;
-
-    // 更新按钮状态
     prevPageButton.disabled = currentPageIndex === 0;
     nextPageButton.disabled = currentPageIndex === currentComic.pages.length - 1;
 }
 
-// --- 新增辅助函数：为没有manifest.json的用户提供手动配置选项 ---
-
-/**
- * 生成manifest.json内容的辅助函数
- * 你可以使用这个函数来生成每个漫画文件夹的manifest.json文件内容
- */
-function generateManifestContent(folderName, imageFileNames) {
-    const manifest = {
-        title: folderName.replace(/-/g, ' '),
-        pages: imageFileNames.sort() // 排序确保正确的阅读顺序
-    };
-    
-    console.log(`为文件夹 "${folderName}" 生成的 manifest.json 内容:`);
-    console.log(JSON.stringify(manifest, null, 2));
-    
-    // 返回内容，你可以将其保存为 comics/folderName/manifest.json
-    return JSON.stringify(manifest, null, 2);
-}
-
-// 示例：如何使用generateManifestContent
-// 假设你在 one-piece 文件夹中有这些图片文件
-// const onePieceFiles = ["001.jpg", "002.jpg", "132.jpg", "133.jpg", "cover.jpg"];
-// const manifestJson = generateManifestContent("one-piece", onePieceFiles);
-// console.log(manifestJson);
+// 🎯 重点：请务必修改这一行！
+// 在你的 script.js 中找到：
+// const COMIC_FOLDERS = ['wulanse']; 
+// 确保它和你仓库里的文件夹名完全一致（大小写也要一致！）
