@@ -6,12 +6,6 @@ const COMIC_ROOT = 'comics';
 const comicListContainer = document.getElementById('comic-list');
 const readerContainer = document.getElementById('reader-container');
 const backToListButton = document.getElementById('back-to-list');
-// 移除不需要的翻页按钮引用
-// const prevPageButton = document.getElementById('prev-page-btn');
-// const nextPageButton = document.getElementById('next-page-btn');
-// const currentPageImage = document.getElementById('current-page-image');
-// const currentPageSpan = document.getElementById('current-page');
-// const totalPagesSpan = document.getElementById('total-pages');
 const currentComicTitleSpan = document.getElementById('current-comic-title');
 
 // 新增：用于存放所有图片的容器
@@ -211,18 +205,10 @@ function renderComicList() {
  */
 function setupEventListeners() {
     backToListButton.addEventListener('click', showComicList);
-
-    // 移除翻页键盘事件
-    // document.addEventListener('keydown', (e) => {
-    //     if (readerContainer.style.display !== 'none') {
-    //         if (e.key === 'ArrowLeft') prevPageButton.click();
-    //         if (e.key === 'ArrowRight') nextPageButton.click();
-    //     }
-    // });
 }
 
 /**
- * 打开阅读器（显示所有页面）
+ * 打开阅读器（显示所有页面，使用原始编号）
  */
 function openComicReader(comic) {
     currentComic = comic;
@@ -233,17 +219,20 @@ function openComicReader(comic) {
     allPagesContainer.innerHTML = '';
 
     // 遍历所有页面，创建图片元素并添加到容器
-    comic.pages.forEach((pageUrl, index) => {
+    comic.pages.forEach((pageUrl) => {
         const imgElement = document.createElement('img');
         imgElement.src = pageUrl;
-        imgElement.alt = `${comic.title} 第 ${index + 1} 页`;
+        // 从 URL 中提取原始编号作为 alt 和页码标签
+        const filenameMatch = pageUrl.match(/\/(\d+)\.\w+$/); // 匹配 /132.jpg 中的 132
+        const pageNumber = filenameMatch ? filenameMatch[1] : 'Unknown'; 
+        imgElement.alt = `${comic.title} 第 ${pageNumber} 页`;
         imgElement.className = 'all-pages-image'; // 添加CSS类方便控制样式
         imgElement.loading = 'lazy'; // 可选：启用懒加载，提升性能
 
-        // 可选：添加页码标签
+        // 创建页码标签，使用原始编号
         const labelElement = document.createElement('div');
         labelElement.className = 'page-number-label';
-        labelElement.textContent = `第 ${index + 1} 页`;
+        labelElement.textContent = `第 ${pageNumber} 页`;
 
         allPagesContainer.appendChild(labelElement);
         allPagesContainer.appendChild(imgElement);
