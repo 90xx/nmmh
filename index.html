@@ -12,20 +12,28 @@
     </header>
 
     <main id="main-content">
-        <!-- 漫画列表页（主界面） -->
         <div id="comic-list-container">
             <h2>漫画列表</h2>
             <div id="comic-list"></div>
         </div>
 
-        <!-- 漫画详情页（显示所有图片） -->
-        <div id="comic-detail-container" style="display: none;">
-            <div id="detail-header">
+        <div id="reader-container" style="display: none;">
+            <div id="reader-header">
                 <button id="back-to-list">← 返回列表</button>
-                <h2 id="comic-title">乌兰斯</h2>
+                <span id="current-comic-title"></span>
+                <span id="page-counter" style="display: none;">第 <span id="current-page">1</span> 页 / 共 <span id="total-pages">0</span> 页</span> <!-- 隐藏 -->
             </div>
-            <!-- 新增：用于显示所有图片的容器 -->
-            <div id="comic-pages"></div>
+            <!-- 新增：用于显示所有页面的容器 -->
+            <div id="all-pages-container" style="display: none;"></div>
+            <!-- 原有的单页显示区域 -->
+            <div id="comic-display-area" style="display: none;">
+                <img id="current-page-image" src="" alt="漫画页面">
+            </div>
+            <!-- 翻页控件 -->
+            <div id="reader-controls" style="display: none;">
+                <button id="prev-page-btn">上一页</button>
+                <button id="next-page-btn">下一页</button>
+            </div>
         </div>
     </main>
 
