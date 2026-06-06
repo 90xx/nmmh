@@ -35,7 +35,7 @@ header h1 {
 
 /* 漫画列表样式 */
 #comic-list-container {
-    display: block; /* 初始显示列表 */
+    display: block;
 }
 
 #comic-list {
@@ -75,8 +75,7 @@ header h1 {
 
 /* 阅读器区域样式 */
 #reader-container {
-    display: none; /* 初始隐藏阅读器 */
-    flex-direction: column;
+    display: none;
 }
 
 #reader-header {
@@ -124,8 +123,8 @@ header h1 {
 
 #current-page-image {
     max-width: 100%;
-    max-height: 70vh; /* 限制图片高度，防止超出视窗 */
-    object-fit: contain; /* 保持图片比例 */
+    max-height: 70vh;
+    object-fit: contain;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
