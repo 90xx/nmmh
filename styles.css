@@ -76,7 +76,7 @@ header h1 {
 /* 阅读器区域样式 */
 #reader-container {
     display: none;
-    flex-direction: column; /* 让内容垂直堆叠 */
+    flex-direction: column;
 }
 
 #reader-header {
@@ -109,14 +109,19 @@ header h1 {
     font-size: 1.2rem;
 }
 
+/* ✅ 优化后：高对比度页码框 */
 #page-counter {
-    background-color: #f8f9fa;       /* 浅灰背景 */
-    border: 1px solid #ddd;          /* 细边框 */
-    padding: 0.4rem 0.8rem;          /* 内边距 */
-    border-radius: 6px;              /* 圆角 */
+    background-color: #fffbe6;       /* 暖黄底色，比纯白更显眼 */
+    border: 2px solid #d4a017;       /* 深金边框，强化边界 */
+    padding: 0.5rem 1.2rem;          /* 更大内边距，视觉更饱满 */
+    border-radius: 8px;              /* 稍大圆角，更柔和但不失醒目 */
     font-weight: bold;               /* 加粗字体 */
-    color: #333;                     /* 深色文字 */
-    display: inline-block;           /* 确保背景框包裹内容 */
+    font-size: 1.1rem;               /* 字号略大 */
+    color: #333;                     /* 深色文字确保可读性 */
+    display: inline-block;
+    min-width: 90px;                 /* 固定最小宽度，避免数字少时过窄 */
+    text-align: center;
+    box-shadow: 0 3px 6px rgba(212, 160, 23, 0.3); /* 金色投影，增强立体感 */
 }
 
 /* 新增：用于显示所有页面的容器样式 */
@@ -124,16 +129,16 @@ header h1 {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    align-items: center; /* 让图片居中 */
+    align-items: center;
     padding: 1rem;
-    gap: 1rem; /* 图片之间的间距 */
+    gap: 1rem;
     background-color: #fff;
 }
 
 .all-pages-image {
     max-width: 100%;
     height: auto;
-    object-fit: contain; /* 保持比例，完整显示 */
+    object-fit: contain;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     border-radius: 4px;
 }
