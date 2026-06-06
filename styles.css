@@ -110,7 +110,13 @@ header h1 {
 }
 
 #page-counter {
-    color: #7f8c8d;
+    background-color: #f8f9fa;       /* 浅灰背景 */
+    border: 1px solid #ddd;          /* 细边框 */
+    padding: 0.4rem 0.8rem;          /* 内边距 */
+    border-radius: 6px;              /* 圆角 */
+    font-weight: bold;               /* 加粗字体 */
+    color: #333;                     /* 深色文字 */
+    display: inline-block;           /* 确保背景框包裹内容 */
 }
 
 /* 新增：用于显示所有页面的容器样式 */
