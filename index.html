@@ -21,7 +21,8 @@
             <div id="reader-header">
                 <button id="back-to-list">← 返回列表</button>
                 <span id="current-comic-title"></span>
-                <span id="page-counter" style="display: none;">第 <span id="current-page">1</span> 页 / 共 <span id="total-pages">0</span> 页</span> <!-- 隐藏 -->
+                <!-- ✅ 已移除 display: none; 让页码计数器显示 -->
+                <span id="page-counter">第 <span id="current-page">1</span> 页 / 共 <span id="total-pages">0</span> 页</span>
             </div>
             <!-- 新增：用于显示所有页面的容器 -->
             <div id="all-pages-container" style="display: none;"></div>
