@@ -12,24 +12,19 @@
     </header>
 
     <main id="main-content">
+        <!-- 漫画列表页（主界面） -->
         <div id="comic-list-container">
             <h2>漫画列表</h2>
             <div id="comic-list"></div>
         </div>
 
-        <div id="reader-container" style="display: none;">
-            <div id="reader-header">
+        <!-- 漫画详情页（缩略图网格） -->
+        <div id="comic-detail-container" style="display: none;">
+            <div id="detail-header">
                 <button id="back-to-list">← 返回列表</button>
-                <span id="current-comic-title"></span>
-                <span id="page-counter">第 <span id="current-page">1</span> 页 / 共 <span id="total-pages">0</span> 页</span>
+                <h2 id="comic-title">乌兰斯</h2>
             </div>
-            <div id="comic-display-area">
-                <img id="current-page-image" src="" alt="漫画页面">
-            </div>
-            <div id="reader-controls">
-                <button id="prev-page-btn">上一页</button>
-                <button id="next-page-btn">下一页</button>
-            </div>
+            <div id="thumbnail-grid"></div>
         </div>
     </main>
 
