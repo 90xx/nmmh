@@ -1,4 +1,7 @@
-/* === 基础重置与布局 === */
+/* ==============================
+   🎯 终极醒目版漫画阅读器 CSS
+   重点：页码标签「第 XXX 页」极致高亮
+   ============================== */
 
 * {
     margin: 0;
@@ -7,35 +10,33 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
     line-height: 1.6;
-    background-color: #f0f2f5;
-    color: #333;
+    background-color: #f8f9fa;
+    color: #212529;
     padding: 0;
     margin: 0;
 }
 
-/* === 头部样式 === */
-
+/* === 头部 === */
 header {
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    background: linear-gradient(135deg, #4a00e0, #8e2de2);
     color: white;
     text-align: center;
-    padding: 1rem 0;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 1.2rem 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
 header h1 {
-    margin: 0;
-    font-size: 1.8rem;
-    letter-spacing: 0.5px;
+    font-size: 1.9rem;
+    font-weight: 700;
+    letter-spacing: 1px;
 }
 
-/* === 主体布局 === */
-
+/* === 主内容区 === */
 #main-content {
     max-width: 1200px;
     margin: 2rem auto;
@@ -43,203 +44,204 @@ header h1 {
 }
 
 /* === 漫画列表容器 === */
-
 #comic-list-container {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    padding: 1.8rem;
+    margin-bottom: 2.5rem;
 }
 
 #comic-list-container h2 {
     color: #2c3e50;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-    border-bottom: 2px solid #eaeaea;
-    padding-bottom: 0.5rem;
+    font-size: 1.6rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid #eee;
 }
 
-/* === 漫画列表项 === */
-
+/* === 漫画项 === */
 .comic-item {
     display: inline-block;
     width: 160px;
-    margin: 0.75rem;
+    margin: 0.8rem;
     cursor: pointer;
     text-align: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    vertical-align: top;
+    transition: all 0.3s ease;
 }
 
 .comic-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-6px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
 }
 
 .comic-item img {
     width: 100%;
     height: 220px;
     object-fit: cover;
-    border-radius: 6px;
-    border: 1px solid #eee;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
 .comic-item h3 {
-    margin-top: 0.5rem;
+    margin-top: 0.7rem;
     font-size: 1rem;
     color: #34495e;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-weight: 600;
 }
 
 /* === 阅读器容器 === */
-
 #reader-container {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    padding: 1.5rem;
-    overflow-x: hidden; /* 防止横向滚动条意外出现 */
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.08);
+    padding: 1.8rem;
+    overflow-x: hidden;
 }
 
 /* === 阅读器头部 === */
-
 #reader-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.8rem;
     padding-bottom: 1rem;
-    border-bottom: 2px solid #eaeaea;
+    border-bottom: 2px solid #f0f0f0;
 }
 
 #back-to-list {
-    background-color: #6c757d;
+    background: #5a67d8;
     color: white;
     border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 4px;
-    cursor: pointer;
+    padding: 0.7rem 1.4rem;
+    border-radius: 6px;
     font-size: 1rem;
-    transition: background-color 0.2s;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.25s;
 }
 
 #back-to-list:hover {
-    background-color: #5a6268;
+    background: #4c56e0;
 }
 
 #current-comic-title {
-    font-size: 1.4rem;
-    font-weight: bold;
-    color: #2c3e50;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
     flex-grow: 1;
     text-align: center;
 }
 
-/* === 页码计数器 (如果需要显示) === */
-/* 如果你不想显示这个，可以注释掉或保持 display: none; */
+/* === 页码计数器（可选显示）=== */
 #page-counter {
     font-size: 1rem;
-    color: #666;
-    margin-left: auto; /* 推到最右侧 */
-    padding-left: 1rem;
+    color: #6c757d;
+    margin-left: auto;
+    padding-left: 1.2rem;
 }
 
-/* === 翻页控件 (已隐藏) === */
-/* #reader-controls { display: none; } */
+/* === 🔥 核心：超醒目页码标签 —— 你想要的“第 132 页” === */
+.page-number-label {
+    /* 文字 */
+    text-align: center;
+    font-size: 1.5rem;           /* 超大字号 */
+    font-weight: 800;            /* 极粗 */
+    color: #0d0d0d;              /* 纯黑，非灰 */
+    letter-spacing: 0.8px;
+    
+    /* 背景与边框 */
+    background: linear-gradient(120deg, #fff9c4, #fff59d); /* 柠檬黄渐变 */
+    border: 3px solid #ffd600;   /* 亮黄实线边框（关键！） */
+    border-radius: 10px;
+    padding: 10px 24px;
+    margin: 20px auto;           /* 上下留足空间 */
+    
+    /* 立体效果 */
+    box-shadow: 
+        0 6px 18px rgba(255, 214, 0, 0.4),   /* 黄色外阴影 */
+        inset 0 -4px 8px rgba(0, 0, 0, 0.06); /* 内阴影增强厚度 */
+    
+    /* 布局 */
+    display: inline-block;
+    min-width: 110px;
+    max-width: 100%;
+    word-break: keep-all;
+    
+    /* 动画交互 */
+    transition: 
+        transform 0.25s ease,
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
 
-/* === 单页显示区域 (已隐藏) === */
-/* #comic-display-area { display: none; } */
+.page-number-label:hover {
+    transform: scale(1.04);
+    box-shadow: 
+        0 8px 24px rgba(255, 214, 0, 0.5),
+        inset 0 -6px 12px rgba(0, 0, 0, 0.1);
+    border-color: #ffc107;
+}
 
-/* === 所有页面容器样式 === */
-
+/* === 所有页面容器 === */
 #all-pages-container {
     width: 100%;
-    /* padding: 1rem; */ /* 可选内边距 */
-}
-
-/* === 关键：每张图片上方的页码标签样式 === */
-/* 这就是你想要优化的部分 */
-.page-number-label {
-    text-align: center;
-    font-size: 1.2rem;           /* 字体稍大 */
-    font-weight: bold;
-    color: #2c3e50;              /* 深灰色，清晰易读 */
-    background-color: rgba(255, 255, 255, 0.9); /* 半透明白底，确保文字清晰 */
-    padding: 6px 16px;           /* 内边距 */
-    border-radius: 6px;          /* 圆角 */
-    margin: 12px auto;           /* 居中，上下间距 */
-    display: block;              /* 独占一行 */
-    width: fit-content;          /* 宽度自适应内容 */
-    max-width: 100%;             /* 不超出容器 */
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* 轻微阴影 */
-    border: 1px solid #ddd;      /* 细边框 */
+    padding: 0;
 }
 
 /* === 漫画图片样式 === */
-
 .all-pages-image {
     display: block;
-    margin: 0 auto; /* 图片居中 */
+    margin: 0 auto;
     max-width: 100%;
     height: auto;
-    border-radius: 4px; /* 可选圆角 */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 可选阴影 */
-    /* padding-top: 10px; */ /* 图片上方可加点空间 */
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* === 响应式设计 === */
-
+/* === 响应式适配 === */
 @media (max-width: 768px) {
-    header h1 {
-        font-size: 1.5rem;
-    }
-
-    #main-content {
-        margin: 1rem 0.5rem;
-        padding: 0 0.5rem;
-    }
+    header h1 { font-size: 1.6rem; }
+    #main-content { margin: 1.2rem 0.6rem; }
 
     .comic-item {
-        width: calc(50% - 1.5rem); /* 两列 */
-        margin: 0.5rem;
+        width: calc(50% - 1.2rem);
+        margin: 0.6rem;
     }
 
     #reader-header {
         flex-direction: column;
-        gap: 0.75rem;
+        gap: 1rem;
         align-items: stretch;
+    }
+
+    #back-to-list {
+        align-self: flex-start;
+        width: auto;
     }
 
     #current-comic-title {
         text-align: left;
-        order: 1; /* 移到最后 */
     }
 
-    #back-to-list {
-        order: 0;
-        align-self: flex-start;
-        width: fit-content;
-    }
-
-    #page-counter {
-        margin-left: 0;
-        order: 2;
-        text-align: center;
+    .page-number-label {
+        font-size: 1.3rem;
+        padding: 8px 18px;
+        margin: 16px auto;
+        border-width: 2px;
     }
 }
 
 @media (max-width: 480px) {
-    .comic-item {
-        width: 100%; /* 一列 */
-        margin: 0.5rem 0;
-    }
+    .comic-item { width: 100%; margin: 0.5rem 0; }
     
     .page-number-label {
-        font-size: 1.1rem;
-        padding: 4px 12px;
+        font-size: 1.2rem;
+        padding: 7px 16px;
+        border-radius: 8px;
     }
 }
