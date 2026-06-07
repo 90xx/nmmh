@@ -1,43 +1,83 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的漫画库</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>柠檬苏漫画库</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- 引入 PDF 生成库 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.min.js"></script>
 </head>
 <body>
-    <header>
-        <h1>我的漫画库</h1>
-    </header>
+  <div id="app">
+    <!-- 漫画列表容器 -->
+    <div id="comic-list-container">
+      <h1>柠檬苏漫画库</h1>
+      <div id="comic-list"></div>
+    </div>
 
-    <main id="main-content">
-        <div id="comic-list-container">
-            <h2>漫画列表</h2>
-            <div id="comic-list"></div>
+    <!-- 阅读器容器 -->
+    <div id="reader-container" style="display: none;">
+      <header class="reader-header">
+        <button id="back-to-list" class="back-button">← 返回列表</button>
+        <span id="current-comic-title" class="comic-title"></span>
+      </header>
+
+      <!-- 导出按钮 -->
+      <div style="text-align:center; margin:1rem;">
+        <button id="btn-export-pdf" style="padding:0.8rem 1.5rem; background:#28a745; color:white; border:none; border-radius:6px; font-size:1rem; cursor:pointer;">
+          📄 导出为 PDF
+        </button>
+      </div>
+
+      <!-- 阅读器内容区域 -->
+      <div id="comic-display-area" style="display: none;"></div>
+      <div id="all-pages-container"></div>
+
+      <!-- 翻页控件（已隐藏） -->
+      <div id="reader-controls" style="display: none;">
+        <button id="prev-btn">上一页</button>
+        <span id="page-info"></span>
+        <button id="next-btn">下一页</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出设置弹窗 -->
+  <div id="export-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:8px; padding:24px; max-width:500px; width:90%; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+      <h3>📌 导出设置</h3>
+      
+      <div style="margin:16px 0;">
+        <label>📚 漫画标题（替换文件夹名）：</label><br>
+        <input type="text" id="export-title-input" value="柠檬苏漫画库" style="width:100%; padding:8px; margin-top:4px; border:1px solid #ccc; border-radius:4px;">
+      </div>
+
+      <div style="margin:16px 0;">
+        <label>📄 封面标题（PDF 第一页大标题）：</label><br>
+        <input type="text" id="cover-title-input" value="柠檬苏漫画库" style="width:100%; padding:8px; margin-top:4px; border:1px solid #ccc; border-radius:4px;">
+      </div>
+
+      <div style="margin:16px 0;">
+        <label>🖼️ 导出范围：</label><br>
+        <select id="export-range-select" style="width:100%; padding:8px; margin-top:4px; border:1px solid #ccc; border-radius:4px;">
+          <option value="all">全部页面</option>
+          <option value="custom">自定义范围</option>
+        </select>
+        <div id="custom-range-fields" style="display:none; margin-top:8px;">
+          <input type="number" id="start-page" placeholder="起始页码" min="1" style="width:45%; margin-right:8px; padding:6px; border:1px solid #ccc; border-radius:4px;">
+          <input type="number" id="end-page" placeholder="结束页码" min="1" style="width:45%; padding:6px; border:1px solid #ccc; border-radius:4px;">
         </div>
+      </div>
 
-        <div id="reader-container" style="display: none;">
-            <div id="reader-header">
-                <button id="back-to-list">← 返回列表</button>
-                <span id="current-comic-title"></span>
-                <!-- ✅ 已移除 display: none; 让页码计数器显示 -->
-                <span id="page-counter">第 <span id="current-page">1</span> 页 / 共 <span id="total-pages">0</span> 页</span>
-            </div>
-            <!-- 新增：用于显示所有页面的容器 -->
-            <div id="all-pages-container" style="display: none;"></div>
-            <!-- 原有的单页显示区域 -->
-            <div id="comic-display-area" style="display: none;">
-                <img id="current-page-image" src="" alt="漫画页面">
-            </div>
-            <!-- 翻页控件 -->
-            <div id="reader-controls" style="display: none;">
-                <button id="prev-page-btn">上一页</button>
-                <button id="next-page-btn">下一页</button>
-            </div>
-        </div>
-    </main>
+      <div style="margin:20px 0; text-align:right;">
+        <button id="cancel-export" style="margin-right:12px; padding:8px 16px; border:none; background:#eee; border-radius:4px; cursor:pointer;">取消</button>
+        <button id="confirm-export" style="padding:8px 20px; border:none; background:#4a90e2; color:white; border-radius:4px; cursor:pointer;">✅ 确认导出</button>
+      </div>
+    </div>
+  </div>
 
-    <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
