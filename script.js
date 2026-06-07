@@ -98,7 +98,6 @@ function imageExists(url) {
         const timeoutId = setTimeout(() => {
             if (!resolved) {
                 resolved = true;
-                clearTimeout(timeoutId);
                 console.warn(`[imageExists] 超时（3s），URL: ${url}`);
                 resolve(false);
             }
@@ -266,9 +265,9 @@ function openComicReader(comic) {
         imgElement.className = 'all-pages-image'; // 添加CSS类方便控制样式
         imgElement.loading = 'lazy'; // 可选：启用懒加载，提升性能
 
-        // 创建页码标签，使用原始编号，并添加 exclude-from-pdf 类
+        // 创建页码标签，使用原始编号
         const labelElement = document.createElement('div');
-        labelElement.className = 'page-number-label exclude-from-pdf'; // 添加此特殊类
+        labelElement.className = 'page-number-label';
         labelElement.textContent = `第 ${pageNumber} 页`;
 
         allPagesContainer.appendChild(labelElement);
@@ -300,104 +299,7 @@ function showComicList() {
     currentPageIndex = 0;
 }
 
-// ===== 导出 PDF 功能 =====
-document.getElementById('btn-export-pdf')?.addEventListener('click', () => {
-    if (!currentComic || currentComic.pages.length === 0) {
-        alert('请先打开一本漫画！');
-        return;
-    }
-    document.getElementById('export-modal').style.display = 'flex';
-});
-
-document.getElementById('cancel-export')?.addEventListener('click', () => {
-    document.getElementById('export-modal').style.display = 'none';
-});
-
-document.getElementById('export-range-select')?.addEventListener('change', function () {
-    const customFields = document.getElementById('custom-range-fields');
-    if (this.value === 'custom') {
-        customFields.style.display = 'block';
-    } else {
-        customFields.style.display = 'none';
-    }
-});
-
-document.getElementById('confirm-export')?.addEventListener('click', async () => {
-    const titleInput = document.getElementById('export-title-input').value.trim() || '柠檬苏漫画库';
-    const coverTitleInput = document.getElementById('cover-title-input').value.trim() || '柠檬苏漫画库';
-    const rangeType = document.getElementById('export-range-select').value;
-
-    // 解析页码范围
-    let startIdx = 0;
-    let endIdx = currentComic.pages.length;
-
-    if (rangeType === 'custom') {
-        const startPage = parseInt(document.getElementById('start-page').value) || 1;
-        const endPage = parseInt(document.getElementById('end-page').value) || currentComic.pages.length;
-        // 转换为数组索引（页码从1开始）
-        startIdx = Math.max(0, startPage - 1);
-        endIdx = Math.min(currentComic.pages.length, endPage);
-        if (startIdx >= endIdx) {
-            alert('起始页码不能大于等于结束页码！');
-            return;
-        }
-    }
-
-    // 提取目标图片列表
-    const targetPages = currentComic.pages.slice(startIdx, endIdx);
-
-    // 创建纯净导出内容（无任何 UI 元素！）
-    const exportContent = document.createElement('div');
-    exportContent.innerHTML = `
-        <div style="text-align:center; margin-bottom:20mm;">
-            <h1 style="font-size:28px; font-weight:bold; color:#333;">${coverTitleInput}</h1>
-            <p style="font-size:16px; color:#666;">${titleInput}</p>
-        </div>
-        ${targetPages.map((url, idx) => {
-            const pageNum = url.match(/\/(\d+)\./)?.[1] || (startIdx + idx + 1);
-            return `
-                <div style="page-break-before: always; text-align: center; padding: 10mm 0;">
-                    <img src="${url}" style="max-width:100%; height:auto; display:block;" alt="Page ${pageNum}" />
-                    <!-- 注意：这里不显示任何页码文字！ -->
-                </div>
-            `;
-        }).join('')}
-    `;
-
-    // 将内容添加到 body 以便计算尺寸，但设置为不可见
-    exportContent.style.position = 'absolute';
-    exportContent.style.left = '-9999px';
-    exportContent.style.top = '-9999px';
-    document.body.appendChild(exportContent);
-
-    try {
-        // 使用 html2pdf 生成 PDF
-        const opt = {
-            margin: [10, 10, 10, 10], // mm
-            filename: `${titleInput.replace(/\s+/g, '_')}.pdf`,
-            image: { type: 'jpeg', quality: 0.9 },
-            html2canvas: {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: null, // 透明背景（避免白边）
-                logging: false
-            },
-            jsPDF: {
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait'
-            },
-            pagebreak: { mode: ['css', 'legacy'] }
-        };
-
-        await html2pdf().from(exportContent).set(opt).save();
-
-        alert(`✅ 导出成功！\n文件名：${opt.filename}\n共 ${targetPages.length} 页`);
-    } catch (err) {
-        console.error('PDF 导出失败:', err);
-        alert(`❌ 导出失败：${err.message || '未知错误'}`);
-    } finally {
-        document.body.removeChild(exportContent);
-        document.getElementById('export-modal').style.display = 'none';
-    }
-});
+// 🎯 重点：请务必修改这一行！
+// 在你的 script.js 中找到：
+// const COMIC_FOLDERS = ['wulanse'];
+// 确保它和你仓库里的文件夹名完全一致（大小写也要一致！）
