@@ -85,52 +85,50 @@ async function getComicFolderNames() {
 }
 
 /**
- * 从单个文件夹构建漫画对象（自动收集所有 .jpg/.jpeg 文件）
+ * 从单个文件夹构建漫画对象（动态扫描所有 .jpg/.jpeg 文件）
  * @param {string} folderName - 文件夹名，如 'wulanse'
  * @returns {Object|null}
  */
 async function buildComicFromFolder(folderName) {
     try {
         const pages = [];
-        let foundAny = false;
 
-        // 尝试加载前 50 张（132 ~ 181），避免无限循环
-        for (let i = 132; i <= 181; i++) {
-            const filename = `${i}.jpg`;
-            const url = `${COMIC_ROOT}/${folderName}/${filename}`;
-            
-            // 检查图片是否存在（通过预加载）
-            if (await imageExists(url)) {
-                pages.push(url);
-                foundAny = true;
+        // ✅ 动态扫描：从 1 开始，直到连续找不到很多张为止
+        let i = 1;
+        let consecutiveNotFound = 0;
+        const maxConsecutiveNotFound = 10; // 连续 10 张找不到就停止
+
+        while (consecutiveNotFound < maxConsecutiveNotFound) {
+            const jpgUrl = `${COMIC_ROOT}/${folderName}/${i}.jpg`;
+            const jpegUrl = `${COMIC_ROOT}/${folderName}/${i}.jpeg`;
+
+            let found = false;
+
+            if (await imageExists(jpgUrl)) {
+                pages.push(jpgUrl);
+                found = true;
+            } else if (await imageExists(jpegUrl)) {
+                pages.push(jpegUrl);
+                found = true;
+            }
+
+            if (found) {
+                consecutiveNotFound = 0; // 重置计数器
             } else {
-                // 如果连续 3 张不存在，停止探测
-                let consecutiveMissing = 0;
-                for (let j = 1; j <= 3; j++) {
-                    if (!await imageExists(`${COMIC_ROOT}/${folderName}/${i+j}.jpg`)) {
-                        consecutiveMissing++;
-                    } else {
-                        break;
-                    }
-                }
-                if (consecutiveMissing >= 3) break;
+                consecutiveNotFound++; // 未找到，计数器+1
+            }
+
+            i++;
+            
+            // 安全上限，防止死循环
+            if (i > 1000) {
+                console.warn(`扫描超过 1000 张，停止扫描 ${folderName}`);
+                break;
             }
         }
 
-        // 如果没找到，再尝试小写 .jpeg
-        if (!foundAny) {
-            for (let i = 100; i <= 200; i++) {
-                const filename = `${i}.jpeg`;
-                const url = `${COMIC_ROOT}/${folderName}/${filename}`;
-                if (await imageExists(url)) {
-                    pages.push(url);
-                    foundAny = true;
-                }
-            }
-        }
-
-        if (!foundAny) {
-            console.warn(`未在 ${folderName} 中找到图片，建议使用 manifest.json 或手动配置`);
+        if (pages.length === 0) {
+            console.warn(`未在 ${folderName} 中找到图片`);
             return null;
         }
 
@@ -144,8 +142,8 @@ async function buildComicFromFolder(folderName) {
         return {
             id: folderName,
             title: folderName.charAt(0).toUpperCase() + folderName.slice(1),
-            cover: pages[0] || `${COMIC_ROOT}/${folderName}/132.jpg`,
-            pages: pages // 保留所有页面的URL数组
+            cover: pages[0],
+            pages: pages
         };
     } catch (error) {
         console.error(`构建漫画 ${folderName} 失败:`, error);
