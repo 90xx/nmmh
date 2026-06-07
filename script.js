@@ -266,9 +266,9 @@ function openComicReader(comic) {
         imgElement.className = 'all-pages-image'; // 添加CSS类方便控制样式
         imgElement.loading = 'lazy'; // 可选：启用懒加载，提升性能
 
-        // 创建页码标签，使用原始编号
+        // 创建页码标签，使用原始编号，并添加 exclude-from-pdf 类
         const labelElement = document.createElement('div');
-        labelElement.className = 'page-number-label';
+        labelElement.className = 'page-number-label exclude-from-pdf'; // 添加此特殊类
         labelElement.textContent = `第 ${pageNumber} 页`;
 
         allPagesContainer.appendChild(labelElement);
@@ -364,6 +364,10 @@ document.getElementById('confirm-export')?.addEventListener('click', async () =>
         }).join('')}
     `;
 
+    // 将内容添加到 body 以便计算尺寸，但设置为不可见
+    exportContent.style.position = 'absolute';
+    exportContent.style.left = '-9999px';
+    exportContent.style.top = '-9999px';
     document.body.appendChild(exportContent);
 
     try {
