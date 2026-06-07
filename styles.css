@@ -19,8 +19,7 @@ body {
 }
 
 /* === 头部 === */
-/* 注意：这里调整了 header 的选择器，因为 HTML 中是 <header class="reader-header"> */
-.reader-header { /* 使用类名而不是标签名 */
+header {
     background: linear-gradient(135deg, #4a00e0, #8e2de2);
     color: white;
     text-align: center;
@@ -28,17 +27,17 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     position: sticky;
     top: 0;
-    z-index: 10;
+    z-index: 100;
 }
 
-.reader-header h1 { /* 如果有内部标题的话 */
+header h1 {
     font-size: 1.9rem;
     font-weight: 700;
     letter-spacing: 1px;
 }
 
 /* === 主内容区 === */
-#app { /* 对应 HTML 中的 <div id="app"> */
+#main-content {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0 1rem;
@@ -53,7 +52,7 @@ body {
     margin-bottom: 2.5rem;
 }
 
-#comic-list-container h1 { /* 调整了选择器，因为 HTML 中是 <h1> */
+#comic-list-container h2 {
     color: #2c3e50;
     font-size: 1.6rem;
     margin-bottom: 1.2rem;
@@ -105,7 +104,7 @@ body {
 }
 
 /* === 阅读器头部 === */
-.reader-header {
+#reader-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -114,7 +113,7 @@ body {
     border-bottom: 2px solid #f0f0f0;
 }
 
-.back-button { /* 对应 HTML 中的 <button id="back-to-list" class="back-button"> */
+#back-to-list {
     background: #5a67d8;
     color: white;
     border: none;
@@ -126,11 +125,11 @@ body {
     transition: background 0.25s;
 }
 
-.back-button:hover {
+#back-to-list:hover {
     background: #4c56e0;
 }
 
-.comic-title { /* 对应 HTML 中的 <span id="current-comic-title" class="comic-title"> */
+#current-comic-title {
     font-size: 1.5rem;
     font-weight: 700;
     color: #1a1a1a;
@@ -204,33 +203,28 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* === PDF 导出时排除的元素 === */
-.exclude-from-pdf {
-  display: none !important;
-}
-
 /* === 响应式适配 === */
 @media (max-width: 768px) {
-    .reader-header h1 { font-size: 1.6rem; }
-    #app { margin: 1.2rem 0.6rem; } /* 调整主容器选择器 */
+    header h1 { font-size: 1.6rem; }
+    #main-content { margin: 1.2rem 0.6rem; }
 
     .comic-item {
         width: calc(50% - 1.2rem);
         margin: 0.6rem;
     }
 
-    .reader-header { /* 调整阅读器头部选择器 */
+    #reader-header {
         flex-direction: column;
         gap: 1rem;
         align-items: stretch;
     }
 
-    .back-button { /* 调整返回按钮选择器 */
+    #back-to-list {
         align-self: flex-start;
         width: auto;
     }
 
-    .comic-title { /* 调整标题选择器 */
+    #current-comic-title {
         text-align: left;
     }
 
