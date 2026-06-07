@@ -108,6 +108,11 @@ body {
   margin: 0.5rem 0;
 }
 
+/* PDF 导出时排除的元素 */
+.exclude-from-pdf {
+  display: none !important;
+}
+
 /* 翻页控件样式 */
 #reader-controls {
   display: flex;
