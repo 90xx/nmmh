@@ -85,65 +85,115 @@ async function getComicFolderNames() {
 }
 
 /**
- * 从单个文件夹构建漫画对象（动态扫描所有 .jpg/.jpeg 文件）
+ * 检查图片是否存在（通过创建 Image 对象），带超时保护
+ * @param {string} url
+ * @returns {Promise<boolean>}
+ */
+function imageExists(url) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        let resolved = false;
+
+        // ✅ 超时保护：3秒后强制返回 false
+        const timeoutId = setTimeout(() => {
+            if (!resolved) {
+                resolved = true;
+                console.warn(`[imageExists] 超时（3s），URL: ${url}`);
+                resolve(false);
+            }
+        }, 3000);
+
+        img.onload = () => {
+            if (!resolved) {
+                resolved = true;
+                clearTimeout(timeoutId);
+                // 额外验证：确保图片尺寸 > 0（排除空文件）
+                if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                    resolve(true);
+                } else {
+                    console.warn(`[imageExists] 图片加载成功但尺寸为 0: ${url}`);
+                    resolve(false);
+                }
+            }
+        };
+
+        img.onerror = () => {
+            if (!resolved) {
+                resolved = true;
+                clearTimeout(timeoutId);
+                console.debug(`[imageExists] 加载失败: ${url}`);
+                resolve(false);
+            }
+        };
+
+        img.src = url;
+    });
+}
+
+/**
+ * 从单个文件夹构建漫画对象（终极动态扫描：支持任意起始页码、前导零、无预设范围）
  * @param {string} folderName - 文件夹名，如 'wulanse'
  * @returns {Object|null}
  */
 async function buildComicFromFolder(folderName) {
     try {
-        const pages = [];
+        const baseDir = `${COMIC_ROOT}/${folderName}`;
+        const pages = new Set(); // 使用 Set 避免重复
 
-        // ✅ 动态扫描：从 1 开始，直到连续找不到很多张为止
-        let i = 1;
-        let consecutiveNotFound = 0;
-        const maxConsecutiveNotFound = 10; // 连续 10 张找不到就停止
+        // ✅ 生成所有可能的文件名候选（支持前导零、任意起始页）
+        const candidates = [];
 
-        while (consecutiveNotFound < maxConsecutiveNotFound) {
-            const jpgUrl = `${COMIC_ROOT}/${folderName}/${i}.jpg`;
-            const jpegUrl = `${COMIC_ROOT}/${folderName}/${i}.jpeg`;
-
-            let found = false;
-
-            if (await imageExists(jpgUrl)) {
-                pages.push(jpgUrl);
-                found = true;
-            } else if (await imageExists(jpegUrl)) {
-                pages.push(jpegUrl);
-                found = true;
-            }
-
-            if (found) {
-                consecutiveNotFound = 0; // 重置计数器
-            } else {
-                consecutiveNotFound++; // 未找到，计数器+1
-            }
-
-            i++;
-            
-            // 安全上限，防止死循环
-            if (i > 1000) {
-                console.warn(`扫描超过 1000 张，停止扫描 ${folderName}`);
-                break;
-            }
+        // 生成 1~999 的所有可能格式：
+        // - 1.jpg, 2.jpg, ..., 999.jpg
+        // - 01.jpg, 02.jpg, ..., 99.jpg
+        // - 001.jpg, 002.jpg, ..., 999.jpg
+        // 同时包括 .jpeg
+        for (let i = 1; i <= 999; i++) {
+            const str = i.toString();
+            candidates.push(
+                `${str}.jpg`,
+                `${str.padStart(2, '0')}.jpg`, // 01.jpg
+                `${str.padStart(3, '0')}.jpg`, // 001.jpg
+                `${str}.jpeg`,
+                `${str.padStart(2, '0')}.jpeg`,
+                `${str.padStart(3, '0')}.jpeg`
+            );
         }
 
-        if (pages.length === 0) {
-            console.warn(`未在 ${folderName} 中找到图片`);
+        // 去重（理论上不会有重复，但保险起见）
+        const uniqueCandidates = [...new Set(candidates)];
+
+        // ✅ 并行探测所有候选文件（限制并发数，避免卡顿）
+        const BATCH_SIZE = 20; // 每批最多 20 个并发请求
+        for (let i = 0; i < uniqueCandidates.length; i += BATCH_SIZE) {
+            const batch = uniqueCandidates.slice(i, i + BATCH_SIZE);
+            const promises = batch.map(async (filename) => {
+                const url = `${baseDir}/${filename}`;
+                if (await imageExists(url)) {
+                    pages.add(url);
+                    console.log(`✅ 找到图片: ${url}`);
+                }
+            });
+            await Promise.all(promises);
+        }
+
+        if (pages.size === 0) {
+            console.warn(`未在 ${folderName} 中找到任何图片`);
             return null;
         }
 
-        // 排序确保顺序正确
-        pages.sort((a, b) => {
-            const numA = parseInt(a.match(/(\d+)\./)[1]) || 0;
-            const numB = parseInt(b.match(/(\d+)\./)[1]) || 0;
+        // ✅ 按文件名中的数字部分排序（而非字符串排序）
+        const sortedPages = Array.from(pages).sort((a, b) => {
+            const numA = parseInt(a.match(/\/(\d+)\./)[1]) || 0;
+            const numB = parseInt(b.match(/\/(\d+)\./)[1]) || 0;
             return numA - numB;
         });
 
         return {
             id: folderName,
             title: folderName.charAt(0).toUpperCase() + folderName.slice(1),
-            cover: pages[0],
-            pages: pages
+            cover: sortedPages[0],
+            pages: sortedPages
         };
     } catch (error) {
         console.error(`构建漫画 ${folderName} 失败:`, error);
@@ -151,18 +201,6 @@ async function buildComicFromFolder(folderName) {
     }
 }
 
-/**
- * 检查图片是否存在（通过创建 Image 对象）
- * 使用旧版中能工作的逻辑
- */
-function imageExists(url) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
-        img.src = url;
-    });
-}
 
 /**
  * 渲染漫画列表
@@ -237,7 +275,7 @@ function openComicReader(comic) {
     });
 
     // 隐藏漫画列表，显示阅读器
-    document.getElementById('comic-list-container').style.display = 'none';
+    document.getElementById('comic-list-container').style.display = 'block';
     readerContainer.style.display = 'block';
 
     // 关键：隐藏翻页控件
