@@ -1,5 +1,5 @@
 // --- 配置区域 ---
-// 只需确保你的漫画放在 comics/ 子文件夹中，如: comics/wulanse/
+// 只需确保你的漫画放在 comics/ 子文件夹中，如: comics/ningmengmanhua/
 const COMIC_ROOT = 'comics';
 
 // --- DOM元素引用 ---
@@ -37,10 +37,10 @@ async function loadComicsAutomatically() {
                 <p>⚠️ 未检测到漫画文件夹。</p>
                 <p>请确保：</p>
                 <ul>
-                    <li>你的漫画图片放在 <code>comics/你的文件夹名/</code> 下（如 <code>comics/wulanse/</code>）</li>
+                    <li>你的漫画图片放在 <code>comics/你的文件夹名/</code> 下（如 <code>comics/ningmengmanhua/</code>）</li>
                     <li>图片格式为 .jpg 或 .jpeg（大小写不敏感）</li>
                     <li>在下方代码中将 <code>COMIC_FOLDERS</code> 改为你的文件夹名，例如：<br>
-                        <code>const COMIC_FOLDERS = ['wulanse'];</code>
+                        <code>const COMIC_FOLDERS = ['ningmengmanhua'];</code>
                     </li>
                 </ul>
             `;
@@ -75,7 +75,7 @@ async function loadComicsAutomatically() {
 }
 
 // ✅ 关键：在这里填写你的漫画文件夹名！
-const COMIC_FOLDERS = ['wulanse']; // ← 修改这里！
+const COMIC_FOLDERS = ['ningmengmanhua']; // ← 修改这里！
 
 /**
  * 获取用户配置的漫画文件夹名列表
@@ -132,7 +132,7 @@ function imageExists(url) {
 
 /**
  * 从单个文件夹构建漫画对象（终极动态扫描：支持任意起始页码、前导零、无预设范围）
- * @param {string} folderName - 文件夹名，如 'wulanse'
+ * @param {string} folderName - 文件夹名，如 'ningmengmanhua'
  * @returns {Object|null}
  */
 async function buildComicFromFolder(folderName) {
@@ -213,9 +213,9 @@ function renderComicList() {
             <p>❌ 未找到任何漫画。</p>
             <p><strong>请立即检查：</strong></p>
             <ol>
-                <li>在 <code>script.js</code> 第 76 行，将 <code>const COMIC_FOLDERS = ['wulanse'];</code> 中的 <code>wulanse</code> 改为你实际的文件夹名（你截图中确实是 <code>wulanse</code>，所以这步应该已完成）</li>
+                <li>在 <code>script.js</code> 第 76 行，将 <code>const COMIC_FOLDERS = ['ningmengmanhua'];</code> 中的 <code>ningmengmanhua</code> 改为你实际的文件夹名（你截图中确实是 <code>ningmengmanhua</code>，所以这步应该已完成）</li>
                 <li>确认图片文件名是小写 <code>.jpg</code>（不是 .JPG）</li>
-                <li>图片必须在 <code>comics/wulanse/132.jpg</code> 这样的路径下</li>
+                <li>图片必须在 <code>comics/ningmengmanhua/132.jpg</code> 这样的路径下</li>
             </ol>
         `;
         return;
@@ -301,5 +301,5 @@ function showComicList() {
 
 // 🎯 重点：请务必修改这一行！
 // 在你的 script.js 中找到：
-// const COMIC_FOLDERS = ['wulanse'];
+// const COMIC_FOLDERS = ['ningmengmanhua'];
 // 确保它和你仓库里的文件夹名完全一致（大小写也要一致！）
