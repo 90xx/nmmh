@@ -1,8 +1,5 @@
-// --- 配置区域 ---
-const COMIC_ROOT = 'comics';
-
 // --- DOM元素引用 ---
-const comicListContainer = document.getElementById('comic-list');
+const comicListContainer = document.getElementById('comic-list'); // 保持ID不变，但内容只显示上传列表
 const uploadedComicList = document.getElementById('uploaded-comic-list');
 const readerContainer = document.getElementById('reader-container');
 const backToListButton = document.getElementById('back-to-list');
@@ -12,87 +9,21 @@ const allPagesContainer = document.getElementById('all-pages-container');
 // --- 全局变量 ---
 let currentComic = null;
 let currentPageIndex = 0;
-let allComics = []; // GitHub Pages 漫画
+// let allComics = []; // GitHub Pages 漫画 - 移除
 let uploadedComics = []; // 上传的漫画
 
 // --- 初始化 ---
 document.addEventListener('DOMContentLoaded', () => {
-    loadComicsAutomatically();
+    // loadComicsAutomatically(); // 移除自动加载GitHub漫画
     setupEventListeners();
     setupUploadListener();
 });
 
-/**
- * 自动扫描 GitHub Pages 漫画（完全自动化，无需手动配置）
- */
-async function loadComicsAutomatically() {
-    try {
-        // 自动获取 comics/ 目录下的所有文件夹
-        const response = await fetch(`${COMIC_ROOT}/`);
-        if (!response.ok) {
-            // 如果目录列表不可用，尝试逐个扫描可能的中文文件夹名
-            await scanPossibleChineseFolders();
-            return;
-        }
-        
-        const htmlText = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlText, 'text/html');
-        
-        // 提取所有链接（文件夹名）
-        const links = Array.from(doc.querySelectorAll('a'));
-        const folderNames = links
-            .map(link => link.getAttribute('href'))
-            .filter(href => href && href.endsWith('/')) // 只保留文件夹
-            .map(folder => folder.replace('/', '')); // 移除末尾斜杠
-        
-        console.log('发现文件夹:', folderNames);
-        
-        for (const folder of folderNames) {
-            const comic = await buildComicFromFolder(folder);
-            if (comic && comic.pages.length > 0) {
-                allComics.push(comic);
-            }
-        }
-        
-        renderComicList();
-    } catch (error) {
-        console.log('目录列表不可用，尝试逐个扫描可能的中文文件夹名...');
-        await scanPossibleChineseFolders();
-    }
-}
-
-/**
- * 扫描可能的中文文件夹名（针对 GitHub Pages 特殊情况）
- */
-async function scanPossibleChineseFolders() {
-    // 常见的中文漫画文件夹名（根据你的情况添加）
-    const possibleNames = [
-        '雾蓝色的雨后晴天',
-        'life线上的我们',
-        'test',
-        'comics',
-        // 可以在这里添加更多可能的中文名
-    ];
-    
-    for (const folderName of possibleNames) {
-        try {
-            // 尝试访问该文件夹
-            const testResponse = await fetch(`${COMIC_ROOT}/${folderName}/`);
-            if (testResponse.ok) {
-                const comic = await buildComicFromFolder(folderName);
-                if (comic && comic.pages.length > 0) {
-                    allComics.push(comic);
-                    console.log(`找到漫画: ${folderName}`);
-                }
-            }
-        } catch (error) {
-            // 忽略错误，继续尝试下一个
-        }
-    }
-    
-    renderComicList();
-}
+// --- 移除 GitHub 相关函数 ---
+// async function loadComicsAutomatically() { ... }
+// async function scanPossibleChineseFolders() { ... }
+// async function buildComicFromFolder(folderName) { ... }
+// function imageExists(url) { ... }
 
 /**
  * 设置上传功能监听器
@@ -136,7 +67,7 @@ function setupUploadListener() {
             }
         }
 
-        renderUploadedComics();
+        renderUploadedComics(); // 只渲染上传的漫画
     });
 }
 
@@ -144,13 +75,15 @@ function setupUploadListener() {
  * 渲染上传的漫画列表
  */
 function renderUploadedComics() {
+    comicListContainer.innerHTML = ''; // 清空原本的GitHub列表区域
     uploadedComicList.innerHTML = '';
     
     if (uploadedComics.length === 0) {
-        uploadedComicList.innerHTML = '<p>暂无上传的漫画</p>';
+        comicListContainer.innerHTML = '<p>请先上传漫画文件夹。</p>'; // 修改提示文字
         return;
     }
 
+    // 直接在 comic-list-container 渲染上传的漫画，保持原有结构
     uploadedComics.forEach((comic, index) => {
         const comicItem = document.createElement('div');
         comicItem.className = 'comic-item';
@@ -167,8 +100,10 @@ function renderUploadedComics() {
         comicItem.appendChild(document.createElement('h3')).textContent = comic.title;
 
         comicItem.addEventListener('click', () => openUploadedComicReader(comic));
-        uploadedComicList.appendChild(comicItem);
+        comicListContainer.appendChild(comicItem); // 添加到主列表容器
     });
+
+    // uploadedComicList.innerHTML = '<p>上传漫画已显示在上方列表。</p>'; // 可选：提示已移动
 }
 
 /**
@@ -203,150 +138,7 @@ function openUploadedComicReader(comic) {
     allPagesContainer.style.display = 'block';
 }
 
-/**
- * 检查图片是否存在
- */
-function imageExists(url) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        let resolved = false;
-
-        const timeoutId = setTimeout(() => {
-            if (!resolved) {
-                resolved = true;
-                resolve(false);
-            }
-        }, 3000);
-
-        img.onload = () => {
-            if (!resolved) {
-                resolved = true;
-                clearTimeout(timeoutId);
-                if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-                    resolve(true);
-                } else {
-                    resolve(false);
-                }
-            }
-        };
-
-        img.onerror = () => {
-            if (!resolved) {
-                resolved = true;
-                clearTimeout(timeoutId);
-                resolve(false);
-            }
-        };
-
-        img.src = url;
-    });
-}
-
-/**
- * 从文件夹构建漫画对象
- */
-async function buildComicFromFolder(folderName) {
-    try {
-        const baseDir = `${COMIC_ROOT}/${folderName}`;
-        const pages = new Set();
-
-        // 生成可能的文件名候选
-        const candidates = [];
-        for (let i = 1; i <= 9999; i++) {
-            const str = i.toString();
-            candidates.push(
-                `${str}.jpg`,
-                `${str.padStart(2, '0')}.jpg`,
-                `${str.padStart(3, '0')}.jpg`,
-                `${str.padStart(4, '0')}.jpg`,
-                `${str}.jpeg`,
-                `${str.padStart(2, '0')}.jpeg`,
-                `${str.padStart(3, '0')}.jpeg`,
-                `${str.padStart(4, '0')}.jpeg`
-            );
-        }
-
-        const uniqueCandidates = [...new Set(candidates)];
-        const BATCH_SIZE = 20;
-
-        for (let i = 0; i < uniqueCandidates.length; i += BATCH_SIZE) {
-            const batch = uniqueCandidates.slice(i, i + BATCH_SIZE);
-            const promises = batch.map(async (filename) => {
-                const url = `${baseDir}/${filename}`;
-                if (await imageExists(url)) {
-                    pages.add(url);
-                }
-            });
-            await Promise.all(promises);
-        }
-
-        if (pages.size === 0) {
-            console.warn(`未在 ${folderName} 中找到任何图片`);
-            return null;
-        }
-
-        const sortedPages = Array.from(pages).sort((a, b) => {
-            const numA = parseInt(a.match(/\/(\d+)\./)?.[1]) || 0;
-            const numB = parseInt(b.match(/\/(\d+)\./)?.[1]) || 0;
-            return numA - numB;
-        });
-
-        return {
-            id: folderName,
-            title: folderName,
-            cover: sortedPages[0],
-            pages: sortedPages,
-            isUploaded: false
-        };
-    } catch (error) {
-        console.error(`构建漫画 ${folderName} 失败:`, error);
-        return null;
-    }
-}
-
-/**
- * 渲染漫画列表
- */
-function renderComicList() {
-    const githubComicsContainer = document.getElementById('github-comics');
-    if (!githubComicsContainer) {
-        // 如果还没有创建 GitHub 漫画容器，创建它
-        comicListContainer.innerHTML = '<h2>📚 GitHub 漫画</h2><div id="github-comics"></div>';
-    }
-
-    const githubComicsContainerFinal = document.getElementById('github-comics');
-    
-    if (allComics.length === 0) {
-        githubComicsContainerFinal.innerHTML = `
-            <p>🔍 正在扫描 GitHub 漫画...</p>
-            <p>如果长时间未显示，请确认：</p>
-            <ul>
-                <li>漫画图片放在 <code>comics/文件夹名/</code> 下</li>
-                <li>图片格式为 <code>.jpg</code> 或 <code>.jpeg</code></li>
-                <li>文件夹名包含中文时已正确编码</li>
-            </ul>
-        `;
-    } else {
-        githubComicsContainerFinal.innerHTML = '';
-        allComics.forEach(comic => {
-            const comicItem = document.createElement('div');
-            comicItem.className = 'comic-item';
-            comicItem.dataset.id = comic.id;
-
-            comicItem.innerHTML = `
-                <img src="${comic.cover}" alt="${comic.title} 封面" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22180%22 height=%22250%22 viewBox=%220 0 180 250%22%3E%3Crect width=%22180%22 height=%22250%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%2250%22 y=%22130%22 font-size=%2214%22 fill=%22%23999%22%3E无封面%3C/text%3E%3C/svg%3E'">
-                <h3>${comic.title}</h3>
-            `;
-
-            comicItem.addEventListener('click', () => openComicReader(comic));
-            githubComicsContainerFinal.appendChild(comicItem);
-        });
-    }
-
-    // 渲染上传的漫画
-    renderUploadedComics();
-}
-
+// --- 保留其他功能不变 ---
 /**
  * 设置事件监听器
  */
@@ -355,7 +147,7 @@ function setupEventListeners() {
 }
 
 /**
- * 打开阅读器
+ * 打开阅读器 (兼容可能的旧调用，虽然现在只用openUploadedComicReader)
  */
 function openComicReader(comic) {
     currentComic = comic;
@@ -367,9 +159,9 @@ function openComicReader(comic) {
     comic.pages.forEach((pageUrl) => {
         const imgElement = document.createElement('img');
         if (comic.isUploaded) {
-            imgElement.src = URL.createObjectURL(pageUrl);
+            imgElement.src = URL.createObjectURL(pageUrl); // 使用 Blob URL
         } else {
-            imgElement.src = pageUrl;
+            imgElement.src = pageUrl; // 这一行理论上不会再执行
         }
         
         let pageNumber = 'Unknown';
