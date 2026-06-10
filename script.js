@@ -75,7 +75,7 @@ async function loadComicsAutomatically() {
 }
 
 // ✅ 关键：在这里填写你的漫画文件夹名！
-const COMIC_FOLDERS = ['life线上的我们']; // ← 修改这里！
+const COMIC_FOLDERS = ['雾蓝色的雨后晴天']; // ← 修改这里！
 
 /**
  * 获取用户配置的漫画文件夹名列表
