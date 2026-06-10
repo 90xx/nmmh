@@ -148,15 +148,17 @@ async function buildComicFromFolder(folderName) {
         // - 01.jpg, 02.jpg, ..., 99.jpg
         // - 001.jpg, 002.jpg, ..., 999.jpg
         // 同时包括 .jpeg
-        for (let i = 1; i <= 999; i++) {
+        for (let i = 1; i <= 9999; i++) {
             const str = i.toString();
             candidates.push(
                 `${str}.jpg`,
                 `${str.padStart(2, '0')}.jpg`, // 01.jpg
                 `${str.padStart(3, '0')}.jpg`, // 001.jpg
+                 `${str.padStart(4, '0')}.jpg`,   // ← 新增这一行
                 `${str}.jpeg`,
                 `${str.padStart(2, '0')}.jpeg`,
                 `${str.padStart(3, '0')}.jpeg`
+                `${str.padStart(4, '0')}.jpeg`
             );
         }
 
