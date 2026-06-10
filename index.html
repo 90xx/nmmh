@@ -8,29 +8,37 @@
 </head>
 <body>
     <header>
-        <h1>柠檬漫画库</h1>
+        <h1>🍋 柠檬漫画库</h1>
+        <!-- 新增上传按钮 -->
+        <div style="margin-top: 10px;">
+            <input type="file" id="uploadFolder" class="file-input" webkitdirectory directory multiple style="display: none;">
+            <button class="upload-btn" onclick="document.getElementById('uploadFolder').click()">📁 上传本地漫画</button>
+        </div>
     </header>
 
     <main id="main-content">
         <div id="comic-list-container">
-            <h2>漫画列表</h2>
-            <div id="comic-list"></div>
+            <h2>📚 漫画列表</h2>
+            <div id="comic-list">
+                <p>正在扫描 GitHub 漫画...</p>
+            </div>
+            <!-- 上传的漫画列表区域 -->
+            <div id="uploaded-comics" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h3>☁️ 上传的漫画</h3>
+                <div id="uploaded-comic-list"></div>
+            </div>
         </div>
 
         <div id="reader-container" style="display: none;">
             <div id="reader-header">
                 <button id="back-to-list">← 返回列表</button>
                 <span id="current-comic-title"></span>
-                <!-- ✅ 已移除 display: none; 让页码计数器显示 -->
                 <span id="page-counter">第 <span id="current-page">1</span> 页 / 共 <span id="total-pages">0</span> 页</span>
             </div>
-            <!-- 新增：用于显示所有页面的容器 -->
             <div id="all-pages-container" style="display: none;"></div>
-            <!-- 原有的单页显示区域 -->
             <div id="comic-display-area" style="display: none;">
                 <img id="current-page-image" src="" alt="漫画页面">
             </div>
-            <!-- 翻页控件 -->
             <div id="reader-controls" style="display: none;">
                 <button id="prev-page-btn">上一页</button>
                 <button id="next-page-btn">下一页</button>
