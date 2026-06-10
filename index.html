@@ -9,21 +9,25 @@
 <body>
     <header>
         <h1>🍋 柠檬漫画库</h1>
-        <!-- 新增上传按钮 -->
-        <div style="margin-top: 10px;">
-            <input type="file" id="uploadFolder" class="file-input" webkitdirectory directory multiple style="display: none;">
-            <button class="upload-btn" onclick="document.getElementById('uploadFolder').click()">📁 上传本地漫画</button>
-        </div>
+        <!-- 移除顶部的上传按钮 -->
     </header>
 
     <main id="main-content">
         <div id="comic-list-container">
             <h2>📚 漫画列表</h2>
             <div id="comic-list">
-                <p>正在扫描 GitHub 漫画...</p>
+                <p>请先上传漫画文件夹。</p>
             </div>
             <div id="uploaded-comics" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-                <h3>☁️ 上传的漫画</h3>
+                <!-- 修改：将 h3 改为可点击的 div -->
+                <div 
+                    style="display: inline-block; cursor: pointer; color: #007bff; font-weight: bold; padding: 4px 8px; border-radius: 4px;"
+                    onmouseover="this.style.backgroundColor='#f0f7ff'" 
+                    onmouseout="this.style.backgroundColor=''"
+                    onclick="document.getElementById('uploadFolder').click()"
+                >
+                   ☁️ 上传漫画
+                </div>
                 <div id="uploaded-comic-list"></div>
             </div>
         </div>
@@ -44,6 +48,9 @@
             </div>
         </div>
     </main>
+
+    <!-- 保持原有的隐藏上传 input 在页面底部 -->
+    <input type="file" id="uploadFolder" class="file-input" webkitdirectory directory multiple style="display: none;">
 
     <script src="script.js"></script>
 </body>
