@@ -4,6 +4,7 @@ const COMIC_ROOT = 'comics';
 
 // --- DOM元素引用 ---
 const comicListContainer = document.getElementById('comic-list');
+const uploadedComicList = document.getElementById('uploaded-comic-list');
 const readerContainer = document.getElementById('reader-container');
 const backToListButton = document.getElementById('back-to-list');
 const currentComicTitleSpan = document.getElementById('current-comic-title');
@@ -14,13 +15,130 @@ const allPagesContainer = document.getElementById('all-pages-container');
 // --- 全局变量 ---
 let currentComic = null;
 let currentPageIndex = 0; // 保留这个变量，可能后续有用
-let allComics = [];
+let allComics = []; // GitHub Pages 漫画
+let uploadedComics = []; // 上传的漫画
 
 // --- 初始化 ---
 document.addEventListener('DOMContentLoaded', () => {
     loadComicsAutomatically();
     setupEventListeners();
+    setupUploadListener();
 });
+
+/**
+ * 设置上传功能监听器
+ */
+function setupUploadListener() {
+    document.getElementById('uploadFolder').addEventListener('change', async function(e) {
+        const files = Array.from(e.target.files);
+        
+        // 按文件夹分组
+        const folders = {};
+        files.forEach(file => {
+            const pathParts = file.webkitRelativePath.split('/');
+            const folderName = pathParts[0];
+            
+            if (!folders[folderName]) {
+                folders[folderName] = [];
+            }
+            folders[folderName].push(file);
+        });
+
+        // 处理每个上传的漫画文件夹
+        for (const [folderName, folderFiles] of Object.entries(folders)) {
+            const images = folderFiles.filter(file => 
+                file.type.startsWith('image/') && /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)
+            ).sort((a, b) => {
+                // 按文件名数字排序
+                const numA = parseInt(a.name.match(/\d+/)?.[0]) || 0;
+                const numB = parseInt(b.name.match(/\d+/)?.[0]) || 0;
+                return numA - numB;
+            });
+
+            if (images.length > 0) {
+                const uploadedComic = {
+                    id: `uploaded_${Date.now()}_${folderName}`,
+                    title: folderName,
+                    cover: images[0],
+                    pages: images,
+                    isUploaded: true // 标记为上传漫画
+                };
+                
+                uploadedComics.push(uploadedComic);
+            }
+        }
+
+        renderUploadedComics();
+    });
+}
+
+/**
+ * 渲染上传的漫画列表
+ */
+function renderUploadedComics() {
+    uploadedComicList.innerHTML = '';
+    
+    if (uploadedComics.length === 0) {
+        uploadedComicList.innerHTML = '<p>暂无上传的漫画</p>';
+        return;
+    }
+
+    uploadedComics.forEach((comic, index) => {
+        const comicItem = document.createElement('div');
+        comicItem.className = 'comic-item';
+        comicItem.dataset.id = comic.id;
+
+        // 创建封面图片（对于上传的漫画）
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(comic.cover);
+        img.alt = comic.title;
+        img.onerror = function() {
+            this.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22180%22 height=%22250%22 viewBox=%220 0 180 250%22%3E%3Crect width=%22180%22 height=%22250%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%2250%22 y=%22130%22 font-size=%2214%22 fill=%22%23999%22%3E无封面%3C/text%3E%3C/svg%3E';
+        };
+
+        comicItem.appendChild(img);
+        comicItem.appendChild(document.createElement('h3')).textContent = comic.title;
+
+        comicItem.addEventListener('click', () => openUploadedComicReader(comic));
+        uploadedComicList.appendChild(comicItem);
+    });
+}
+
+/**
+ * 打开上传漫画的阅读器
+ */
+function openUploadedComicReader(comic) {
+    currentComic = comic;
+    currentPageIndex = 0;
+    currentComicTitleSpan.textContent = comic.title;
+
+    // 清空旧内容
+    allPagesContainer.innerHTML = '';
+
+    // 渲染上传漫画的所有页面
+    comic.pages.forEach((file, pageIndex) => {
+        const imgElement = document.createElement('img');
+        imgElement.src = URL.createObjectURL(file);
+        imgElement.alt = `${comic.title} 第 ${pageIndex + 1} 页`;
+        imgElement.className = 'all-pages-image';
+        imgElement.loading = 'lazy';
+
+        // 创建页码标签（保持你原有的醒目样式）
+        const labelElement = document.createElement('div');
+        labelElement.className = 'page-number-label';
+        labelElement.textContent = `第 ${pageIndex + 1} 页`;
+
+        allPagesContainer.appendChild(labelElement);
+        allPagesContainer.appendChild(imgElement);
+    });
+
+    // 显示阅读器
+    document.getElementById('comic-list-container').style.display = 'block';
+    readerContainer.style.display = 'block';
+    document.getElementById('reader-controls').style.display = 'none';
+    document.getElementById('comic-display-area').style.display = 'none';
+    allPagesContainer.style.display = 'block';
+}
 
 /**
  * 自动加载所有漫画：扫描 comics/ 下的每个子文件夹，收集 .jpg 文件
@@ -28,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadComicsAutomatically() {
     if (!comicListContainer) return;
 
-    comicListContainer.innerHTML = '<p>正在扫描漫画...</p>';
+    comicListContainer.innerHTML = '<p>正在扫描 GitHub 漫画...</p>';
 
     try {
         const comicFolders = await getComicFolderNames();
@@ -195,7 +313,8 @@ async function buildComicFromFolder(folderName) {
             id: folderName,
             title: folderName.charAt(0).toUpperCase() + folderName.slice(1),
             cover: sortedPages[0],
-            pages: sortedPages
+            pages: sortedPages,
+            isUploaded: false // 标记为 GitHub 漫画
         };
     } catch (error) {
         console.error(`构建漫画 ${folderName} 失败:`, error);
@@ -208,10 +327,12 @@ async function buildComicFromFolder(folderName) {
  * 渲染漫画列表
  */
 function renderComicList() {
-    comicListContainer.innerHTML = '';
+    comicListContainer.innerHTML = '<h2>📚 GitHub 漫画</h2><div id="github-comics"></div>';
 
+    const githubComicsContainer = document.getElementById('github-comics');
+    
     if (allComics.length === 0) {
-        comicListContainer.innerHTML = `
+        githubComicsContainer.innerHTML = `
             <p>❌ 未找到任何漫画。</p>
             <p><strong>请立即检查：</strong></p>
             <ol>
@@ -234,8 +355,11 @@ function renderComicList() {
         `;
 
         comicItem.addEventListener('click', () => openComicReader(comic));
-        comicListContainer.appendChild(comicItem);
+        githubComicsContainer.appendChild(comicItem);
     });
+
+    // 重新渲染上传的漫画列表
+    renderUploadedComics();
 }
 
 /**
@@ -259,10 +383,25 @@ function openComicReader(comic) {
     // 遍历所有页面，创建图片元素并添加到容器
     comic.pages.forEach((pageUrl) => {
         const imgElement = document.createElement('img');
-        imgElement.src = pageUrl;
+        // 对于上传的漫画，pageUrl 是 File 对象；对于 GitHub 漫画，pageUrl 是字符串 URL
+        if (comic.isUploaded) {
+            imgElement.src = URL.createObjectURL(pageUrl);
+        } else {
+            imgElement.src = pageUrl;
+        }
+        
         // 从 URL 中提取原始编号作为 alt 和页码标签
-        const filenameMatch = pageUrl.match(/\/(\d+)\.\w+$/); // 匹配 /132.jpg 中的 132
-        const pageNumber = filenameMatch ? filenameMatch[1] : 'Unknown'; 
+        let pageNumber = 'Unknown';
+        if (comic.isUploaded) {
+            // 上传漫画：按数组索引
+            const pageIndex = comic.pages.indexOf(pageUrl);
+            pageNumber = (pageIndex + 1).toString();
+        } else {
+            // GitHub 漫画：从 URL 提取数字
+            const filenameMatch = pageUrl.match(/\/(\d+)\.\w+$/); // 匹配 /132.jpg 中的 132
+            pageNumber = filenameMatch ? filenameMatch[1] : 'Unknown';
+        }
+        
         imgElement.alt = `${comic.title} 第 ${pageNumber} 页`;
         imgElement.className = 'all-pages-image'; // 添加CSS类方便控制样式
         imgElement.loading = 'lazy'; // 可选：启用懒加载，提升性能
