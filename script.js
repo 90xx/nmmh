@@ -157,7 +157,7 @@ async function buildComicFromFolder(folderName) {
                  `${str.padStart(4, '0')}.jpg`,   // ← 新增这一行
                 `${str}.jpeg`,
                 `${str.padStart(2, '0')}.jpeg`,
-                `${str.padStart(3, '0')}.jpeg`
+                `${str.padStart(3, '0')}.jpeg`,
                 `${str.padStart(4, '0')}.jpeg`
             );
         }
